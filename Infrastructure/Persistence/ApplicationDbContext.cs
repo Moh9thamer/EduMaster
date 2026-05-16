@@ -1,6 +1,8 @@
 using Domain.AcademicYears;
 using Domain.Grades;
+using Domain.Sections;
 using Domain.Semesters;
+using Domain.Subjects;
 using Infrastructure.Auth.Models;
 using Infrastructure.User;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -18,6 +20,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<AcademicYear> AcademicYears => Set<AcademicYear>();
     public DbSet<Grade> Grades => Set<Grade>();
     public DbSet<Semester> Semesters => Set<Semester>();
+    public DbSet<Section> Sections => Set<Section>();
+    public DbSet<Subject> Subjects => Set<Subject>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -41,6 +45,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             .HasQueryFilter(g => g.IsActive);
 
         builder.Entity<Semester>()
+            .HasQueryFilter(s => s.IsActive);
+
+        builder.Entity<Section>()
+            .HasQueryFilter(s => s.IsActive);
+
+        builder.Entity<Subject>()
             .HasQueryFilter(s => s.IsActive);
     }
 }

@@ -1,12 +1,16 @@
 using Application.AcademicYears;
 using Application.Grades;
+using Application.Sections;
 using Application.Semesters;
+using Application.Subjects;
 using Application.Auth;
 using Application.Common;
 using Application.Users;
 using Infrastructure.AcademicYears;
 using Infrastructure.Grades;
+using Infrastructure.Sections;
 using Infrastructure.Semesters;
+using Infrastructure.Subjects;
 using Infrastructure.Auth;
 using Application.Notifications;
 using Infrastructure.Notifications;
@@ -44,6 +48,10 @@ public static class DependencyInjection
         services.AddScoped<IGradeService, GradeService>();
         services.AddScoped<ISemesterRepository, SemesterRepository>();
         services.AddScoped<ISemesterService, SemesterService>();
+        services.AddScoped<ISectionRepository, SectionRepository>();
+        services.AddScoped<ISectionService, SectionService>();
+        services.AddScoped<ISubjectRepository, SubjectRepository>();
+        services.AddScoped<ISubjectService, SubjectService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<IUserService, UserService>();
