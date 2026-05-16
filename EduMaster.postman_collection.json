@@ -1,0 +1,285 @@
+{
+  "info": {
+    "name": "EduMaster API",
+    "description": "Complete API collection for EduMaster. After login, the token and refreshToken are saved automatically as collection variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://localhost:7001", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "refreshToken", "value": "", "type": "string" },
+    { "key": "userId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "description": "Login with phone number and password. Automatically saves token and refreshToken as collection variables on success.\n\nRate limit: 10 req/min.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const res = pm.response.json();",
+                  "  pm.collectionVariables.set('token', res.token);",
+                  "  pm.collectionVariables.set('refreshToken', res.refreshToken);",
+                  "  console.log('Token saved.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"12345678\",\n  \"password\": \"Admin@123456\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Register User",
+          "description": "Register a new user. Requires Admin or Manager role.\n\nManagers can only create Teacher and Student roles.\nValid roles: Admin, Manager, Teacher, Student.\n\nPassword requirements: min 6 chars, uppercase, lowercase, digit, special character.",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"teacher@edumaster.com\",\n  \"password\": \"Teacher@123456\",\n  \"fullName\": \"John Doe\",\n  \"mobileNumber\": \"99887766\",\n  \"role\": \"Teacher\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Get Current User (Me)",
+          "description": "Returns the authenticated user's profile from the database (always up to date, not from JWT claims).\n\nAutomatically saves userId as a collection variable.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const res = pm.response.json();",
+                  "  pm.collectionVariables.set('userId', res.id);",
+                  "  console.log('userId saved:', res.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "auth", "me"] }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "description": "Update the authenticated user's own profile. All fields are optional — only provided fields are updated.\n\nReturns specific errors if email or phone number is already in use.",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Updated Name\",\n  \"email\": \"newemail@example.com\",\n  \"phoneNumber\": \"87654321\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/update", "host": ["{{baseUrl}}"], "path": ["api", "auth", "update"] }
+          }
+        },
+        {
+          "name": "Change Password",
+          "description": "Change the authenticated user's own password. Requires the current password for verification.\n\nUse Forgot Password instead if the current password is unknown.",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"OldPass@123\",\n  \"newPassword\": \"NewPass@123456\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/change-password", "host": ["{{baseUrl}}"], "path": ["api", "auth", "change-password"] }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "description": "Sends a 6-digit OTP to the user's registered phone number via SMS. The OTP is valid for 10 minutes.\n\nAlways returns 200 OK regardless of whether the phone number exists (security by design).\nRate limit: 3 req/min.",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"12345678\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/forgot-password", "host": ["{{baseUrl}}"], "path": ["api", "auth", "forgot-password"] }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "description": "Reset password using the 6-digit OTP received via SMS. The OTP can only be used once and expires in 10 minutes.\n\nRate limit: 5 req/min.",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"12345678\",\n  \"code\": \"483920\",\n  \"newPassword\": \"NewPass@123456\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/reset-password", "host": ["{{baseUrl}}"], "path": ["api", "auth", "reset-password"] }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "description": "Issue a new JWT and refresh token using a valid refresh token. The old refresh token is immediately invalidated (rotation).\n\nAutomatically updates token and refreshToken collection variables.\nRate limit: 5 req/min.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const res = pm.response.json();",
+                  "  pm.collectionVariables.set('token', res.token);",
+                  "  pm.collectionVariables.set('refreshToken', res.refreshToken);",
+                  "  console.log('Tokens rotated.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api", "auth", "refresh"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "description": "Revokes the refresh token, preventing it from being used to issue new JWTs.\n\nNote: The JWT itself remains valid until it expires (5 hours). Clear it on the client side after logout.\n\nAutomatically clears token and refreshToken collection variables.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set('token', '');",
+                  "  pm.collectionVariables.set('refreshToken', '');",
+                  "  console.log('Tokens cleared.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/logout", "host": ["{{baseUrl}}"], "path": ["api", "auth", "logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "description": "All endpoints require Admin role.",
+      "item": [
+        {
+          "name": "Get All Users",
+          "description": "Returns a list of all registered users with their roles.\n\nUse the returned user ID in other admin endpoints.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const users = pm.response.json();",
+                  "  if (users.length > 0) {",
+                  "    pm.collectionVariables.set('userId', users[0].id);",
+                  "    console.log('First userId saved:', users[0].id);",
+                  "  }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/admin/users", "host": ["{{baseUrl}}"], "path": ["api", "admin", "users"] }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "description": "Returns a single user's profile and roles by their ID.\n\nThe {{userId}} variable is set automatically by Login, Get Me, or Get All Users.",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "description": "Permanently deletes a user by ID. This action cannot be undone.\n\nThe {{userId}} variable is set automatically by Login, Get Me, or Get All Users.",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Reset Any User Password",
+          "description": "Force-resets a user's password without requiring their current password. Admin only.\n\nPassword requirements: min 6 chars, uppercase, lowercase, digit, special character.",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newPassword\": \"NewPass@123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{userId}}/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users", "{{userId}}", "reset-password"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
