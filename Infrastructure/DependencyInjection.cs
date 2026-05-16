@@ -1,8 +1,11 @@
+using Application.AcademicYears;
+using Application.Auth;
 using Application.Common;
+using Application.Users;
+using Infrastructure.AcademicYears;
 using Infrastructure.Auth;
-using Infrastructure.Auth.Interfaces;
-using Infrastructure.Notifications.Interfaces;
-using Infrastructure.Notifications.Services;
+using Application.Notifications;
+using Infrastructure.Notifications;
 using Infrastructure.Persistence;
 using Infrastructure.User;
 using Microsoft.Extensions.Configuration;
@@ -29,16 +32,18 @@ public static class DependencyInjection
             .AddRoles<ApplicationRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
-        
+
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+        services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
+        services.AddScoped<IAcademicYearService, AcademicYearService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<IUserService, UserService>();
-        
+
         // Register Notification services (for Twilio SMS)
         services.AddScoped<ISmsService, SmsNotificationService>();
         services.AddScoped<INotificationService, NotificationService>();
-        
+
         return services;
     }
 }

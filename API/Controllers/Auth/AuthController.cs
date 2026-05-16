@@ -1,7 +1,6 @@
 using System.Security.Claims;
-using Infrastructure.Auth.DTOs;
-using Infrastructure.Auth.Interfaces;
-using Infrastructure.User;
+using Application.Auth;
+using Application.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -13,10 +12,12 @@ namespace API.Controllers.Auth;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IUserService _userService;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IUserService userService)
     {
         _authService = authService;
+        _userService = userService;
     }
 
     [Authorize]
@@ -26,10 +27,11 @@ public class AuthController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null) return Unauthorized();
 
-        var user = await _authService.GetUserByIdAsync(userId);
-        if (user == null) return NotFound();
+        var result = await _userService.GetByIdAsync(userId);
+        if (!result.Succeeded)
+            return NotFound(new ProblemDetails { Title = result.Errors[0], Status = 404 });
 
-        return Ok(new { user.Id, user.FullName, user.PhoneNumber, user.Email });
+        return Ok(result.Data);
     }
 
     [Authorize(Roles = "Admin,Manager")]
@@ -39,11 +41,11 @@ public class AuthController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        if (!ApplicationRole.Roles.All.Contains(dto.Role))
-            return BadRequest($"Invalid role '{dto.Role}'. Valid roles are: {string.Join(", ", ApplicationRole.Roles.All)}");
+        if (!UserRoles.All.Contains(dto.Role))
+            return BadRequest($"Invalid role '{dto.Role}'. Valid roles are: {string.Join(", ", UserRoles.All)}");
 
         var callerRole = User.FindFirst(ClaimTypes.Role)?.Value;
-        if (callerRole == ApplicationRole.Roles.Manager && !ApplicationRole.Roles.ManagerCanCreate.Contains(dto.Role))
+        if (callerRole == UserRoles.Manager && !UserRoles.ManagerCanCreate.Contains(dto.Role))
             return Forbid();
 
         var result = await _authService.RegisterAsync(dto);
@@ -105,7 +107,7 @@ public class AuthController : ControllerBase
 
     [EnableRateLimiting("standard")]
     [HttpPost("reset-password")]
-    public async Task<IActionResult> ResetPasswordPhone([FromBody] ResetPasswordDto dto)
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -127,7 +129,7 @@ public class AuthController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        var result = await _authService.ChangePasswordAsync(userId, dto);
+        var result = await _userService.ChangePasswordAsync(userId, dto);
         if (!result.Succeeded)
             return BadRequest(new { errors = result.Errors });
 
@@ -141,7 +143,7 @@ public class AuthController : ControllerBase
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
-        var result = await _authService.UpdateUserAsync(userId, dto);
+        var result = await _userService.UpdateUserAsync(userId, dto);
         if (!result.Succeeded)
             return BadRequest(new { errors = result.Errors });
 

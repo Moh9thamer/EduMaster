@@ -1,4 +1,4 @@
-using Infrastructure.Auth.Interfaces;
+using Application.Auth;
 using Infrastructure.Auth.Models;
 using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;

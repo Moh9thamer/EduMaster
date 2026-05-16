@@ -1,4 +1,5 @@
 using Application.Common;
+using Application.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -79,6 +80,66 @@ public class UserService : IUserService
 
         user.IsActive = true;
         var result = await _userManager.UpdateAsync(user);
+        return result.Succeeded
+            ? Result.Ok()
+            : Result.Fail(result.Errors.Select(e => e.Description));
+    }
+
+    public async Task<Result> UpdateUserAsync(string userId, UpdateUserDto dto)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null) return Result.Fail("User not found.");
+
+        if (!string.IsNullOrWhiteSpace(dto.Email) && dto.Email != user.Email)
+        {
+            var emailExists = await _userManager.Users
+                .IgnoreQueryFilters()
+                .AnyAsync(u => u.NormalizedEmail == dto.Email.ToUpper() && u.Id != userId);
+            if (emailExists) return Result.Fail("Email is already in use.");
+
+            user.Email = dto.Email;
+            user.UserName = dto.Email;
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) && dto.PhoneNumber != user.PhoneNumber)
+        {
+            var phoneExists = await _userManager.Users
+                .IgnoreQueryFilters()
+                .AnyAsync(u => u.PhoneNumber == dto.PhoneNumber && u.Id != userId);
+            if (phoneExists) return Result.Fail("Phone number is already in use.");
+
+            user.PhoneNumber = dto.PhoneNumber;
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.FullName))
+            user.FullName = dto.FullName;
+
+        var updateResult = await _userManager.UpdateAsync(user);
+        return updateResult.Succeeded
+            ? Result.Ok()
+            : Result.Fail(updateResult.Errors.Select(e => e.Description));
+    }
+
+    public async Task<Result> ChangePasswordAsync(string userId, ChangePasswordDto dto)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null) return Result.Fail("User not found.");
+
+        var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
+        return result.Succeeded
+            ? Result.Ok()
+            : Result.Fail(result.Errors.Select(e => e.Description));
+    }
+
+    public async Task<Result> AdminResetPasswordAsync(string userId, string newPassword)
+    {
+        var user = await _userManager.Users
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null) return Result.Fail("User not found.");
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
         return result.Succeeded
             ? Result.Ok()
             : Result.Fail(result.Errors.Select(e => e.Description));
