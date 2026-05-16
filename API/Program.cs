@@ -1,5 +1,6 @@
 using System.Text;
 using System.Threading.RateLimiting;
+using API.Middleware;
 using Infrastructure;
 using Infrastructure.Persistence;
 using Infrastructure.User;
@@ -156,6 +157,8 @@ builder.Configuration
 var app = builder.Build();
 
 #region Middleware
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

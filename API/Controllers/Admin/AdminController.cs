@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+using Infrastructure.Auth.DTOs;
 using Infrastructure.Auth.Interfaces;
 using Infrastructure.User;
 using Microsoft.AspNetCore.Authorization;
@@ -21,45 +21,55 @@ public class AdminController : ControllerBase
     }
 
     [HttpGet("users")]
-    public async Task<IActionResult> GetUsers()
+    public async Task<IActionResult> GetUsers(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] bool includeInactive = false)
     {
-        var users = await _userService.GetAllAsync();
-        return Ok(users);
+        var result = await _userService.GetAllAsync(page, pageSize, includeInactive);
+        return Ok(result);
     }
 
     [HttpGet("users/{userId}")]
     public async Task<IActionResult> GetUser(string userId)
     {
-        var user = await _userService.GetByIdAsync(userId);
-        if (user == null) return NotFound();
+        var result = await _userService.GetByIdAsync(userId);
+        if (!result.Succeeded)
+            return NotFound(new ProblemDetails { Title = result.Errors[0], Status = 404 });
 
-        return Ok(user);
+        return Ok(result.Data);
     }
 
     [HttpDelete("users/{userId}")]
-    public async Task<IActionResult> DeleteUser(string userId)
+    public async Task<IActionResult> DeactivateUser(string userId)
     {
-        var result = await _userService.DeleteAsync(userId);
-        if (!result) return NotFound();
+        var result = await _userService.DeactivateAsync(userId);
+        if (!result.Succeeded)
+            return NotFound(new ProblemDetails { Title = result.Errors[0], Status = 404 });
 
-        return Ok("User deleted successfully.");
+        return Ok("User deactivated.");
+    }
+
+    [HttpPut("users/{userId}/activate")]
+    public async Task<IActionResult> ActivateUser(string userId)
+    {
+        var result = await _userService.ActivateAsync(userId);
+        if (!result.Succeeded)
+            return NotFound(new ProblemDetails { Title = result.Errors[0], Status = 404 });
+
+        return Ok("User activated.");
     }
 
     [HttpPut("users/{userId}/reset-password")]
-    public async Task<IActionResult> ResetUserPassword(string userId, [FromBody] AdminResetPasswordRequest request)
+    public async Task<IActionResult> ResetUserPassword(string userId, [FromBody] AdminResetPasswordDto dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var result = await _authService.AdminResetPasswordAsync(userId, request.NewPassword);
+        var result = await _authService.AdminResetPasswordAsync(userId, dto.NewPassword);
         if (!result.Succeeded)
-            return BadRequest(result.Errors.Select(e => e.Description));
+            return BadRequest(new { errors = result.Errors });
 
         return Ok("Password reset successfully.");
     }
 }
-
-public record AdminResetPasswordRequest(
-    [Required, MinLength(6)]
-    string NewPassword
-);

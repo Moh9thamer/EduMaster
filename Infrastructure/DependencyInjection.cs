@@ -1,3 +1,4 @@
+using Application.Common;
 using Infrastructure.Auth;
 using Infrastructure.Auth.Interfaces;
 using Infrastructure.Notifications.Interfaces;
@@ -29,6 +30,7 @@ public static class DependencyInjection
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
         
+        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<IUserService, UserService>();

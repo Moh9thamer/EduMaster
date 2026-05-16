@@ -1,21 +1,21 @@
+using Application.Common;
 using Infrastructure.Auth.DTOs;
 using Infrastructure.User;
-using Microsoft.AspNetCore.Identity;
 
 namespace Infrastructure.Auth.Interfaces;
 
 public interface IAuthService
 {
-    Task<IdentityResult> RegisterAsync(RegisterUserDto dto);
-    Task<LoginResponseDto?> LoginAsync(LoginUserDto dto);
-    Task<LoginResponseDto?> RefreshTokenAsync(string refreshToken);
-    Task<bool> RevokeTokenAsync(string refreshToken);
+    Task<Result> RegisterAsync(RegisterUserDto dto);
+    Task<Result<LoginResponseDto>> LoginAsync(LoginUserDto dto);
+    Task<Result<LoginResponseDto>> RefreshTokenAsync(string refreshToken);
+    Task<Result> RevokeTokenAsync(string refreshToken);
 
-    Task<bool> ForgotPasswordAsync(ForgotPasswordDto dto);
-    Task<bool> ResetPasswordAsync(ResetPasswordDto dto);
+    Task<Result> ForgotPasswordAsync(ForgotPasswordDto dto);
+    Task<Result> ResetPasswordAsync(ResetPasswordDto dto);
 
     Task<ApplicationUser?> GetUserByIdAsync(string userId);
-    Task<IdentityResult> UpdateUserAsync(string userId, UpdateUserDto dto);
-    Task<IdentityResult> ChangePasswordAsync(string userId, ChangePasswordDto dto);
-    Task<IdentityResult> AdminResetPasswordAsync(string userId, string newPassword);
+    Task<Result> UpdateUserAsync(string userId, UpdateUserDto dto);
+    Task<Result> ChangePasswordAsync(string userId, ChangePasswordDto dto);
+    Task<Result> AdminResetPasswordAsync(string userId, string newPassword);
 }

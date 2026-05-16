@@ -24,6 +24,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.Entity<RefreshToken>()
             .HasIndex(r => r.Token)
             .IsUnique();
+
+        builder.Entity<ApplicationUser>()
+            .HasQueryFilter(u => u.IsActive);
     }
 }
 
