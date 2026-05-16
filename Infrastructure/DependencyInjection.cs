@@ -1,8 +1,12 @@
 using Application.AcademicYears;
+using Application.Grades;
+using Application.Semesters;
 using Application.Auth;
 using Application.Common;
 using Application.Users;
 using Infrastructure.AcademicYears;
+using Infrastructure.Grades;
+using Infrastructure.Semesters;
 using Infrastructure.Auth;
 using Application.Notifications;
 using Infrastructure.Notifications;
@@ -36,6 +40,10 @@ public static class DependencyInjection
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
         services.AddScoped<IAcademicYearService, AcademicYearService>();
+        services.AddScoped<IGradeRepository, GradeRepository>();
+        services.AddScoped<IGradeService, GradeService>();
+        services.AddScoped<ISemesterRepository, SemesterRepository>();
+        services.AddScoped<ISemesterService, SemesterService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<IUserService, UserService>();

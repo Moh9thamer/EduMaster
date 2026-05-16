@@ -1,4 +1,6 @@
 using Domain.AcademicYears;
+using Domain.Grades;
+using Domain.Semesters;
 using Infrastructure.Auth.Models;
 using Infrastructure.User;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -14,6 +16,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<OtpCode> OtpCodes => Set<OtpCode>();
     public DbSet<AcademicYear> AcademicYears => Set<AcademicYear>();
+    public DbSet<Grade> Grades => Set<Grade>();
+    public DbSet<Semester> Semesters => Set<Semester>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -32,6 +36,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
         builder.Entity<AcademicYear>()
             .HasQueryFilter(a => a.IsActive);
+
+        builder.Entity<Grade>()
+            .HasQueryFilter(g => g.IsActive);
+
+        builder.Entity<Semester>()
+            .HasQueryFilter(s => s.IsActive);
     }
 }
 

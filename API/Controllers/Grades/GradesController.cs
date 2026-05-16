@@ -1,0 +1,49 @@
+using Application.Grades;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace API.Controllers.Grades;
+
+[ApiController]
+[Route("api/grades")]
+[Authorize(Roles = "Admin,Manager")]
+public class GradesController(IGradeService service) : ControllerBase
+{
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await service.GetAllAsync();
+        return Ok(result);
+    }
+
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var result = await service.GetByIdAsync(id);
+        return Ok(result.Data);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Create([FromBody] CreateGradeDto dto)
+    {
+        var result = await service.CreateAsync(dto);
+        return CreatedAtAction(nameof(GetById), new { id = result.Data!.Id }, result.Data);
+    }
+
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateGradeDto dto)
+    {
+        var result = await service.UpdateAsync(id, dto);
+        return Ok(result.Data);
+    }
+
+    [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Deactivate(int id)
+    {
+        await service.DeactivateAsync(id);
+        return NoContent();
+    }
+}
