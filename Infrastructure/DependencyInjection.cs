@@ -1,5 +1,6 @@
 using Application.AcademicYears;
 using Application.Grades;
+using Application.GradingSchemes;
 using Application.Sections;
 using Application.Semesters;
 using Application.Subjects;
@@ -8,6 +9,7 @@ using Application.Common;
 using Application.Users;
 using Infrastructure.AcademicYears;
 using Infrastructure.Grades;
+using Infrastructure.GradingSchemes;
 using Infrastructure.Sections;
 using Infrastructure.Semesters;
 using Infrastructure.Subjects;
@@ -52,6 +54,8 @@ public static class DependencyInjection
         services.AddScoped<ISectionService, SectionService>();
         services.AddScoped<ISubjectRepository, SubjectRepository>();
         services.AddScoped<ISubjectService, SubjectService>();
+        services.AddScoped<IGradingSchemeRepository, GradingSchemeRepository>();
+        services.AddScoped<IGradingSchemeService, GradingSchemeService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<IUserService, UserService>();

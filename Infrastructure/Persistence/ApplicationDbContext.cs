@@ -1,5 +1,6 @@
 using Domain.AcademicYears;
 using Domain.Grades;
+using Domain.GradingSchemes;
 using Domain.Sections;
 using Domain.Semesters;
 using Domain.Subjects;
@@ -22,6 +23,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Semester> Semesters => Set<Semester>();
     public DbSet<Section> Sections => Set<Section>();
     public DbSet<Subject> Subjects => Set<Subject>();
+    public DbSet<GradingScheme> GradingSchemes => Set<GradingScheme>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -52,6 +54,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
         builder.Entity<Subject>()
             .HasQueryFilter(s => s.IsActive);
+
+        builder.Entity<GradingScheme>()
+            .HasQueryFilter(g => g.IsActive);
+
+        builder.Entity<GradingScheme>(b =>
+        {
+            b.Property(g => g.QuizWeight).HasPrecision(5, 2);
+            b.Property(g => g.MidtermWeight).HasPrecision(5, 2);
+            b.Property(g => g.FinalWeight).HasPrecision(5, 2);
+            b.Property(g => g.AssignmentWeight).HasPrecision(5, 2);
+            b.Property(g => g.AttendanceWeight).HasPrecision(5, 2);
+        });
     }
 }
 
