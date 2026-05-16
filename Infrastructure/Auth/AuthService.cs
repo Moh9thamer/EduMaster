@@ -45,6 +45,7 @@ public class AuthService : IAuthService
     public async Task<Result> RegisterAsync(RegisterUserDto dto)
     {
         var phoneExists = await _userManager.Users
+            .IgnoreQueryFilters()
             .AnyAsync(u => u.PhoneNumber == dto.MobileNumber);
 
         if (phoneExists)
@@ -173,6 +174,7 @@ public class AuthService : IAuthService
         if (!string.IsNullOrWhiteSpace(dto.Email) && dto.Email != user.Email)
         {
             var emailExists = await _userManager.Users
+                .IgnoreQueryFilters()
                 .AnyAsync(u => u.NormalizedEmail == dto.Email.ToUpper() && u.Id != userId);
             if (emailExists) return Result.Fail("Email is already in use.");
 
@@ -183,6 +185,7 @@ public class AuthService : IAuthService
         if (!string.IsNullOrWhiteSpace(dto.PhoneNumber) && dto.PhoneNumber != user.PhoneNumber)
         {
             var phoneExists = await _userManager.Users
+                .IgnoreQueryFilters()
                 .AnyAsync(u => u.PhoneNumber == dto.PhoneNumber && u.Id != userId);
             if (phoneExists) return Result.Fail("Phone number is already in use.");
 

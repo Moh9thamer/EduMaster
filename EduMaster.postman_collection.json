@@ -16,7 +16,7 @@
       "item": [
         {
           "name": "Login",
-          "description": "Login with phone number and password. Automatically saves token and refreshToken as collection variables on success.\n\nRate limit: 10 req/min.",
+          "description": "Login with phone number and password. Automatically saves token and refreshToken as collection variables on success.\n\nRate limit: 10 req/min.\n\nError responses use ProblemDetails format: { title, status }.",
           "event": [
             {
               "listen": "test",
@@ -45,7 +45,7 @@
         },
         {
           "name": "Register User",
-          "description": "Register a new user. Requires Admin or Manager role.\n\nManagers can only create Teacher and Student roles.\nValid roles: Admin, Manager, Teacher, Student.\n\nPassword requirements: min 6 chars, uppercase, lowercase, digit, special character.",
+          "description": "Register a new user. Requires Admin or Manager role.\n\nManagers can only create Teacher and Student roles.\nValid roles: Admin, Manager, Teacher, Student.\n\nPassword requirements: min 6 chars, uppercase, lowercase, digit, special character.\n\nError responses: { errors: string[] }",
           "request": {
             "method": "POST",
             "header": [
@@ -85,7 +85,7 @@
         },
         {
           "name": "Update Profile",
-          "description": "Update the authenticated user's own profile. All fields are optional — only provided fields are updated.\n\nReturns specific errors if email or phone number is already in use.",
+          "description": "Update the authenticated user's own profile. All fields are optional — only provided fields are updated.\n\nError responses: { errors: string[] }",
           "request": {
             "method": "PUT",
             "header": [
@@ -101,7 +101,7 @@
         },
         {
           "name": "Change Password",
-          "description": "Change the authenticated user's own password. Requires the current password for verification.\n\nUse Forgot Password instead if the current password is unknown.",
+          "description": "Change the authenticated user's own password. Requires the current password for verification.\n\nUse Forgot Password instead if the current password is unknown.\n\nError responses: { errors: string[] }",
           "request": {
             "method": "PUT",
             "header": [
@@ -130,7 +130,7 @@
         },
         {
           "name": "Reset Password",
-          "description": "Reset password using the 6-digit OTP received via SMS. The OTP can only be used once and expires in 10 minutes.\n\nRate limit: 5 req/min.",
+          "description": "Reset password using the 6-digit OTP received via SMS. The OTP can only be used once and expires in 10 minutes.\n\nRate limit: 5 req/min.\n\nError responses use ProblemDetails format: { title, status }.",
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
@@ -143,7 +143,7 @@
         },
         {
           "name": "Refresh Token",
-          "description": "Issue a new JWT and refresh token using a valid refresh token. The old refresh token is immediately invalidated (rotation).\n\nAutomatically updates token and refreshToken collection variables.\nRate limit: 5 req/min.",
+          "description": "Issue a new JWT and refresh token using a valid refresh token. The old refresh token is immediately invalidated (rotation).\n\nAutomatically updates token and refreshToken collection variables.\nRate limit: 5 req/min.\n\nError responses use ProblemDetails format: { title, status }.",
           "event": [
             {
               "listen": "test",
@@ -209,17 +209,17 @@
       "item": [
         {
           "name": "Get All Users",
-          "description": "Returns a list of all registered users with their roles.\n\nUse the returned user ID in other admin endpoints.",
+          "description": "Returns a paginated list of users with their roles and active status.\n\nQuery params:\n- page (default: 1)\n- pageSize (default: 20)\n- includeInactive (default: false) — set to true to include deactivated users\n\nResponse shape:\n{\n  items: UserDto[],\n  totalCount: number,\n  page: number,\n  pageSize: number,\n  totalPages: number,\n  hasNext: boolean,\n  hasPrevious: boolean\n}\n\nAutomatically saves the first user's ID as {{userId}}.",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
                   "if (pm.response.code === 200) {",
-                  "  const users = pm.response.json();",
-                  "  if (users.length > 0) {",
-                  "    pm.collectionVariables.set('userId', users[0].id);",
-                  "    console.log('First userId saved:', users[0].id);",
+                  "  const res = pm.response.json();",
+                  "  if (res.items && res.items.length > 0) {",
+                  "    pm.collectionVariables.set('userId', res.items[0].id);",
+                  "    console.log('First userId saved:', res.items[0].id);",
                   "  }",
                   "}"
                 ],
@@ -230,12 +230,21 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": { "raw": "{{baseUrl}}/api/admin/users", "host": ["{{baseUrl}}"], "path": ["api", "admin", "users"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users?page=1&pageSize=20&includeInactive=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "pageSize", "value": "20" },
+                { "key": "includeInactive", "value": "false" }
+              ]
+            }
           }
         },
         {
           "name": "Get User by ID",
-          "description": "Returns a single user's profile and roles by their ID.\n\nThe {{userId}} variable is set automatically by Login, Get Me, or Get All Users.",
+          "description": "Returns a single user's profile, roles, and active status by their ID.\n\nThe {{userId}} variable is set automatically by Login, Get Me, or Get All Users.\n\nError responses use ProblemDetails format: { title, status }.",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
@@ -247,8 +256,8 @@
           }
         },
         {
-          "name": "Delete User",
-          "description": "Permanently deletes a user by ID. This action cannot be undone.\n\nThe {{userId}} variable is set automatically by Login, Get Me, or Get All Users.",
+          "name": "Deactivate User",
+          "description": "Soft-deletes a user by setting IsActive = false. The record is preserved in the database and can be reactivated.\n\nDeactivated users cannot log in and are excluded from normal user queries.\n\nThe {{userId}} variable is set automatically by Login, Get Me, or Get All Users.\n\nError responses use ProblemDetails format: { title, status }.",
           "request": {
             "method": "DELETE",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
@@ -260,8 +269,21 @@
           }
         },
         {
+          "name": "Activate User",
+          "description": "Reactivates a previously deactivated user by setting IsActive = true.\n\nThe {{userId}} variable is set automatically by Login, Get Me, or Get All Users.\n\nError responses use ProblemDetails format: { title, status }.",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{userId}}/activate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users", "{{userId}}", "activate"]
+            }
+          }
+        },
+        {
           "name": "Reset Any User Password",
-          "description": "Force-resets a user's password without requiring their current password. Admin only.\n\nPassword requirements: min 6 chars, uppercase, lowercase, digit, special character.",
+          "description": "Force-resets a user's password without requiring their current password. Admin only.\n\nWorks on both active and inactive users.\n\nPassword requirements: min 6 chars, uppercase, lowercase, digit, special character.\n\nError responses: { errors: string[] }",
           "request": {
             "method": "PUT",
             "header": [
