@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EduMaster.API/EduMaster.API.csproj" />
+    <Project Path="src/EduMaster.Application/EduMaster.Application.csproj" />
+    <Project Path="src/EduMaster.Domain/EduMaster.Domain.csproj" />
+    <Project Path="src/EduMaster.Infrastructure/EduMaster.Infrastructure.csproj" />
+  </Folder>
+</Solution>
