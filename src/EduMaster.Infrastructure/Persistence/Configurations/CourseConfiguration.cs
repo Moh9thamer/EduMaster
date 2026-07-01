@@ -33,6 +33,21 @@ namespace EduMaster.Infrastructure.Persistence.Configurations
             builder.Property(e => e.HomeworkWeight)
                 .IsRequired()
                 .HasPrecision(5, 2);
+
+            builder.HasOne(e => e.Semester)
+                    .WithMany()
+                    .HasForeignKey(e => e.SemesterId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(e => e.Level)
+                    .WithMany()
+                    .HasForeignKey(e => e.LevelId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(e => e.ElectiveLevel)
+                    .WithMany()
+                    .HasForeignKey(e => e.ElectiveLevelId)
+                    .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

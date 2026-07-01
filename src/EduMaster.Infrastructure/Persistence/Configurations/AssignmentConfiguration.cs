@@ -23,6 +23,11 @@ namespace EduMaster.Infrastructure.Persistence.Configurations
                 .HasPrecision(5, 2);
 
             builder.Property(e => e.DueDate);
+
+            builder.HasOne(e => e.Course)
+                    .WithMany()
+                    .HasForeignKey(e => e.CourseId)
+                    .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

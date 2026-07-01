@@ -32,6 +32,11 @@ namespace EduMaster.Infrastructure.Persistence.Configurations
             builder.Property(e => e.Status)
                 .IsRequired()
                 .HasConversion<string>();
+
+            builder.HasOne(e => e.Level)
+                .WithMany()
+                .HasForeignKey(e => e.LevelId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

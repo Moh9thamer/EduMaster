@@ -23,6 +23,11 @@ namespace EduMaster.Infrastructure.Persistence.Configurations
 
             builder.Property(e => e.IsRead)
                 .HasDefaultValue(false);
+
+            builder.HasOne(e => e.Recipient)
+                .WithMany()
+                .HasForeignKey(e => e.RecipientId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

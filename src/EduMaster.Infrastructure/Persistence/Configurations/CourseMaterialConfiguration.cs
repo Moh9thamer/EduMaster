@@ -17,6 +17,16 @@ namespace EduMaster.Infrastructure.Persistence.Configurations
             builder.Property(e => e.FileUrl)
                 .IsRequired()
                 .HasMaxLength(500);
+
+            builder.HasOne(e => e.Course)
+                .WithMany()
+                .HasForeignKey(e => e.CourseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(e => e.UploadedBy)
+                .WithMany()
+                .HasForeignKey(e => e.UploadedById)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

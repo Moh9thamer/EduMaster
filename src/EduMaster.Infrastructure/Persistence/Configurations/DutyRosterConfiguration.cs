@@ -12,6 +12,11 @@ namespace EduMaster.Infrastructure.Persistence.Configurations
 
             builder.Property(e => e.Date)
                 .IsRequired();
+
+            builder.HasOne(e => e.Manager)
+                .WithMany()
+                .HasForeignKey(e => e.ManagerId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

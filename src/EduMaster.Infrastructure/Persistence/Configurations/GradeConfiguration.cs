@@ -1,3 +1,4 @@
+using EduMaster.Domain.Courses;
 using EduMaster.Domain.Grades;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -16,6 +17,16 @@ namespace EduMaster.Infrastructure.Persistence.Configurations
 
             builder.Property(e => e.Published)
                 .HasDefaultValue(false);
+
+            builder.HasOne(e => e.Student)
+                    .WithMany()
+                    .HasForeignKey(e => e.StudentId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            
+            builder.HasOne(e => e.Assignment)
+                    .WithMany()
+                    .HasForeignKey(e => e.AssignmentId)
+                    .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

@@ -20,6 +20,16 @@ namespace EduMaster.Infrastructure.Persistence.Configurations
 
             builder.Property(e => e.ChangedAt)
                 .IsRequired();
+
+            builder.HasOne(e => e.Grade)
+                .WithMany()
+                .HasForeignKey(e => e.GradeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(e => e.ChangedBy)
+                .WithMany()
+                .HasForeignKey(e => e.ChangedById)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
